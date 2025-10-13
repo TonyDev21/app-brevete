@@ -38,10 +38,8 @@ fun RegisterScreen(
     var phoneNumber by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
     var birthDate by remember { mutableStateOf("") }
-    var selectedRole by remember { mutableStateOf(UserRole.STUDENT) }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var showRoleDropdown by remember { mutableStateOf(false) }
     
     val authState by authViewModel.authState.collectAsStateWithLifecycle()
     
@@ -222,40 +220,6 @@ fun RegisterScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Selector de rol
-                ExposedDropdownMenuBox(
-                    expanded = showRoleDropdown,
-                    onExpandedChange = { showRoleDropdown = !showRoleDropdown }
-                ) {
-                    OutlinedTextField(
-                        value = getRoleDisplayName(selectedRole),
-                        onValueChange = { },
-                        readOnly = true,
-                        label = { Text("Tipo de Usuario") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showRoleDropdown) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .menuAnchor()
-                    )
-                    
-                    ExposedDropdownMenu(
-                        expanded = showRoleDropdown,
-                        onDismissRequest = { showRoleDropdown = false }
-                    ) {
-                        UserRole.values().forEach { role ->
-                            DropdownMenuItem(
-                                text = { Text(getRoleDisplayName(role)) },
-                                onClick = {
-                                    selectedRole = role
-                                    showRoleDropdown = false
-                                }
-                            )
-                        }
-                    }
-                }
-                
                 Spacer(modifier = Modifier.height(24.dp))
                 
                 // Botón de registro
@@ -271,7 +235,7 @@ fun RegisterScreen(
                                 phoneNumber = phoneNumber.trim(),
                                 address = address.trim(),
                                 birthDate = birthDate.trim(),
-                                role = selectedRole
+                                role = UserRole.STUDENT // Por defecto todos los usuarios se registran como estudiantes
                             )
                         }
                     },
@@ -315,16 +279,6 @@ fun RegisterScreen(
                 )
             }
         }
-    }
-}
-
-private fun getRoleDisplayName(role: UserRole): String {
-    return when (role) {
-        UserRole.STUDENT -> "Estudiante"
-        UserRole.INSTRUCTOR -> "Instructor"
-        UserRole.EXAMINER -> "Examinador"
-        UserRole.ADMIN -> "Administrador"
-        UserRole.MEDICAL_DOCTOR -> "Doctor Médico"
     }
 }
 
