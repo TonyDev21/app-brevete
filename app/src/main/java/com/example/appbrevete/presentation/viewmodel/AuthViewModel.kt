@@ -29,7 +29,8 @@ class AuthViewModel @Inject constructor(
             try {
                 _authState.value = AuthState.Loading
                 
-                val user = userRepository.authenticateUser(email, password)
+                val normalizedEmail = email.trim().lowercase()
+                val user = userRepository.authenticateUser(normalizedEmail, password)
                 if (user != null) {
                     _currentUser.value = user
                     _authState.value = AuthState.Authenticated
@@ -57,40 +58,48 @@ class AuthViewModel @Inject constructor(
             try {
                 _authState.value = AuthState.Loading
                 
-                // Verificar si el email ya existe
+                // Debug: Verificar si el email ya existe
                 val existingUser = userRepository.getUserByEmail(email)
                 if (existingUser != null) {
                     _authState.value = AuthState.Error("El email ya está registrado")
                     return@launch
                 }
                 
-                // Verificar si el DNI ya existe
+                // Debug: Verificar si el DNI ya existe
                 val existingDni = userRepository.getUserByDni(dni)
                 if (existingDni != null) {
                     _authState.value = AuthState.Error("El DNI ya está registrado")
                     return@launch
                 }
                 
-                // Crear nuevo usuario
+                // Debug: Crear nuevo usuario
                 val newUser = User(
                     id = UUID.randomUUID().toString(),
-                    email = email,
-                    password = password, // En producción, esto debería ser hasheado
-                    firstName = firstName,
-                    lastName = lastName,
-                    dni = dni,
-                    phoneNumber = phoneNumber,
-                    address = address,
-                    birthDate = birthDate,
+                    email = email.trim().lowercase(),
+                    password = password,
+                    firstName = firstName.trim(),
+                    lastName = lastName.trim(),
+                    dni = dni.trim(),
+                    phoneNumber = phoneNumber.trim(),
+                    address = address.trim(),
+                    birthDate = birthDate.trim(),
                     role = role
                 )
                 
+                // Debug: Intentar insertar usuario
                 userRepository.insertUser(newUser)
-                _currentUser.value = newUser
-                _authState.value = AuthState.Authenticated
+                
+                // Debug: Verificar que el usuario se insertó correctamente
+                val insertedUser = userRepository.getUserByEmail(email.trim().lowercase())
+                if (insertedUser != null) {
+                    _currentUser.value = insertedUser
+                    _authState.value = AuthState.Authenticated
+                } else {
+                    _authState.value = AuthState.Error("Error: Usuario no se guardó correctamente")
+                }
                 
             } catch (e: Exception) {
-                _authState.value = AuthState.Error("Error al registrar: ${e.message}")
+                _authState.value = AuthState.Error("Error al registrar: ${e.message ?: "Error desconocido"}")
             }
         }
     }

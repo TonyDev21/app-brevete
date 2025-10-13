@@ -4,12 +4,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -21,6 +23,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.appbrevete.domain.model.UserRole
 import com.example.appbrevete.presentation.viewmodel.AuthViewModel
 import com.example.appbrevete.presentation.viewmodel.AuthState
+import android.app.DatePickerDialog
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,14 +142,45 @@ fun RegisterScreen(
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
+                // Campo de fecha con DatePicker
+                var showDatePicker by remember { mutableStateOf(false) }
+                
                 OutlinedTextField(
                     value = birthDate,
-                    onValueChange = { birthDate = it },
-                    label = { Text("Fecha de nacimiento (DD/MM/YYYY)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
+                    onValueChange = { }, // No editable directamente
+                    label = { Text("Fecha de nacimiento") },
+                    placeholder = { Text("DD/MM/AAAA") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDatePicker = true },
                     singleLine = true
                 )
+                
+                // DatePicker Dialog
+                if (showDatePicker) {
+                    DatePickerDialog(
+                        onDateSelected = { selectedDate ->
+                            birthDate = selectedDate
+                            showDatePicker = false
+                        },
+                        onDismiss = { showDatePicker = false }
+                    )
+                }
+                
+                if (birthDate.isNotEmpty() && !isValidDateFormat(birthDate)) {
+                    Text(
+                        text = "Formato inválido. Use DD/MM/AAAA",
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 12.sp,
+                        modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(24.dp))
                 
@@ -301,5 +336,85 @@ private fun isFormValid(
             dni.isNotBlank() &&
             phoneNumber.isNotBlank() &&
             address.isNotBlank() &&
-            birthDate.isNotBlank()
+            birthDate.isNotBlank() // Solo verificar que no esté vacío
+}
+
+private fun isCompleteDateFormat(date: String): Boolean {
+    if (date.length != 10) return false
+    
+    val regex = Regex("^\\d{2}/\\d{2}/\\d{4}$")
+    if (!regex.matches(date)) return false
+    
+    val parts = date.split("/")
+    if (parts.size != 3) return false
+    
+    val day = parts[0].toIntOrNull() ?: return false
+    val month = parts[1].toIntOrNull() ?: return false
+    val year = parts[2].toIntOrNull() ?: return false
+    
+    return day in 1..31 && month in 1..12 && year in 1900..2010
+}
+
+@Composable
+private fun DatePickerDialog(
+    onDateSelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    
+    // Configurar fecha máxima (para personas de al menos 15 años)
+    val maxCalendar = Calendar.getInstance()
+    maxCalendar.add(Calendar.YEAR, -15)
+    
+    // Configurar fecha mínima (para personas de máximo 100 años)
+    val minCalendar = Calendar.getInstance()
+    minCalendar.add(Calendar.YEAR, -100)
+    
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val formattedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
+            onDateSelected(formattedDate)
+        },
+        calendar.get(Calendar.YEAR) - 25, // Año por defecto (25 años atrás)
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+    
+    // Configurar límites de fecha
+    datePickerDialog.datePicker.maxDate = maxCalendar.timeInMillis
+    datePickerDialog.datePicker.minDate = minCalendar.timeInMillis
+    
+    datePickerDialog.setOnDismissListener { onDismiss() }
+    
+    DisposableEffect(Unit) {
+        datePickerDialog.show()
+        onDispose {
+            datePickerDialog.dismiss()
+        }
+    }
+}
+
+private fun isValidDateFormat(date: String): Boolean {
+    // Permitir formatos parciales mientras se escribe
+    if (date.isEmpty()) return true
+    
+    // Formato completo: DD/MM/AAAA
+    if (date.length == 10 && date.matches(Regex("^\\d{2}/\\d{2}/\\d{4}$"))) {
+        val parts = date.split("/")
+        val day = parts[0].toIntOrNull() ?: return false
+        val month = parts[1].toIntOrNull() ?: return false
+        val year = parts[2].toIntOrNull() ?: return false
+        
+        return day in 1..31 && month in 1..12 && year in 1900..2010
+    }
+    
+    // Formatos parciales válidos mientras se escribe
+    return when {
+        date.matches(Regex("^\\d{1,2}$")) -> true // Solo día
+        date.matches(Regex("^\\d{2}/\\d{1,2}$")) -> true // Día/Mes
+        date.matches(Regex("^\\d{2}/\\d{2}/\\d{1,4}$")) -> true // Día/Mes/Año parcial
+        else -> false
+    }
 }

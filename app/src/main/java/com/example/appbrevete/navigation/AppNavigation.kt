@@ -472,7 +472,8 @@ fun AuthNavigation(authViewModel: AuthViewModel) {
                     navController.popBackStack()
                 },
                 onNavigateToHome = {
-                    // La navegación al home se maneja automáticamente por el estado de auth
+                    // Esta navegación debe ser manejada por el estado de auth a nivel superior
+                    // No hacemos nada aquí, el cambio de estado manejará la navegación
                 },
                 authViewModel = authViewModel
             )
