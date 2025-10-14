@@ -338,18 +338,6 @@ fun AppointmentSummaryScreen(
                 }
             }
         }
-        
-        // Botón de prueba para verificar navegación
-        Spacer(modifier = Modifier.height(8.dp))
-        TextButton(
-            onClick = {
-                println("AppointmentSummary: Test navigation button pressed")
-                onAppointmentCreated()
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("🔧 Prueba - Ir a Citas (Test)", style = MaterialTheme.typography.bodySmall)
-        }
     }
     
     // Diálogo de confirmación
