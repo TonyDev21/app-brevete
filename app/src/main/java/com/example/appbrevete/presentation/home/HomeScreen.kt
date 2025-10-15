@@ -35,6 +35,7 @@ fun HomeScreen(
     onNavigateToAppointments: () -> Unit = {},
     onNavigateToClasses: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
+    onNavigateToLicenses: () -> Unit = {},
     onNavigateToAdmin: () -> Unit = {},
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -71,6 +72,7 @@ fun HomeScreen(
                     onNavigateToAppointments = onNavigateToAppointments,
                     onNavigateToClasses = onNavigateToClasses,
                     onNavigateToProfile = onNavigateToProfile,
+                    onNavigateToLicenses = onNavigateToLicenses,
                     onNavigateToAdmin = onNavigateToAdmin
                 )
             }
@@ -146,6 +148,7 @@ fun QuickActionsCard(
     onNavigateToAppointments: () -> Unit,
     onNavigateToClasses: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
     onNavigateToAdmin: () -> Unit
 ) {
     Card(
@@ -162,13 +165,16 @@ fun QuickActionsCard(
             Spacer(modifier = Modifier.height(16.dp))
             
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
                 items(getQuickActions(
                     currentUser = currentUser,
                     onNavigateToAppointments = onNavigateToAppointments,
                     onNavigateToClasses = onNavigateToClasses,
                     onNavigateToProfile = onNavigateToProfile,
+                    onNavigateToLicenses = onNavigateToLicenses,
                     onNavigateToAdmin = onNavigateToAdmin
                 )) { action ->
                     QuickActionItem(
@@ -302,24 +308,28 @@ fun QuickActionItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp)
+        modifier = Modifier
+            .width(100.dp)
+            .padding(vertical = 8.dp)
     ) {
         IconButton(
             onClick = onClick,
-            modifier = Modifier.size(48.dp)
+            modifier = Modifier.size(64.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier.size(32.dp),
                 tint = MaterialTheme.colorScheme.primary
             )
         }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = title,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             textAlign = TextAlign.Center,
-            maxLines = 2
+            maxLines = 2,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -331,15 +341,28 @@ fun StatItem(
     icon: ImageVector
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .width(100.dp)
+            .padding(vertical = 8.dp)
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = title,
-            modifier = Modifier.size(32.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(8.dp))
+        Surface(
+            modifier = Modifier.size(64.dp),
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        ) {
+            Box(
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    modifier = Modifier.size(32.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = value,
             fontSize = 20.sp,
@@ -347,8 +370,10 @@ fun StatItem(
         )
         Text(
             text = title,
-            fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -452,6 +477,7 @@ private fun getQuickActions(
     onNavigateToAppointments: () -> Unit,
     onNavigateToClasses: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToLicenses: () -> Unit,
     onNavigateToAdmin: () -> Unit
 ): List<QuickAction> {
     val actions = mutableListOf<QuickAction>()
@@ -474,9 +500,9 @@ private fun getQuickActions(
     
     actions.add(
         QuickAction(
-            icon = Icons.Filled.Person,
-            title = "Perfil",
-            onClick = onNavigateToProfile
+            icon = Icons.Filled.CreditCard,
+            title = "Licencias",
+            onClick = onNavigateToLicenses
         )
     )
     

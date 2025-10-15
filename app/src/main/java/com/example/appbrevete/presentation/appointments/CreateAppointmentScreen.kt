@@ -153,9 +153,9 @@ fun LicenseTypeSelectionCard(
                     ) {
                         Icon(
                             imageVector = when (licenseType.category) {
-                                LicenseCategory.A1, LicenseCategory.A2, LicenseCategory.A3 -> Icons.Default.TwoWheeler
-                                LicenseCategory.B1, LicenseCategory.B2 -> Icons.Default.DirectionsCar
-                                LicenseCategory.C1, LicenseCategory.C2, LicenseCategory.C3 -> Icons.Default.LocalShipping
+                                LicenseCategory.BII_A, LicenseCategory.BII_B, LicenseCategory.BII_C -> Icons.Default.TwoWheeler
+                                LicenseCategory.A1, LicenseCategory.A2 -> Icons.Default.DirectionsCar
+                                LicenseCategory.B1, LicenseCategory.B2, LicenseCategory.B3 -> Icons.Default.LocalShipping
                                 else -> Icons.Default.CreditCard
                             },
                             contentDescription = null,
@@ -169,15 +169,10 @@ fun LicenseTypeSelectionCard(
                 
                 Column {
                     Text(
-                        text = "Licencia ${licenseType.category}",
+                        text = licenseType.name,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = licenseType.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = licenseType.description,
@@ -195,11 +190,6 @@ fun LicenseTypeSelectionCard(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Edad: ${licenseType.ageRequirement}+",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 
                 Spacer(modifier = Modifier.height(8.dp))

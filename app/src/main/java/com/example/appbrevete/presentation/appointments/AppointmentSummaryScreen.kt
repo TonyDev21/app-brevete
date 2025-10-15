@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -30,6 +31,17 @@ fun AppointmentSummaryScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var isAppointmentCreated by remember { mutableStateOf(false) }
+    
+    // Mapa de descripciones por ID de licencia
+    val licenseDescriptions = mapOf(
+        "license-bii-a" to "Motocicletas de dos y tres ruedas (con sidecar) para uso particular.",
+        "license-bii-b" to "Los mismos vehículos que la licencia BII-A y para motocicletas de cualquier cilindraje.",
+        "license-bii-c" to "Para mototaxis y trimotos destinadas al transporte de pasajeros.",
+        "license-a1" to "Automóviles particulares hasta 2500 kg de peso bruto vehicular.",
+        "license-a2a" to "Automóviles y camionetas hasta 3500 kg de peso bruto vehicular."
+    )
+    
+    val licenseDescription = licenseDescriptions[licenseType.id] ?: "Descripción no disponible"
     
     // Convertir fecha y hora de formato URL-safe a formato de visualización
     val displayDate = if (selectedDate.contains("-")) {
@@ -143,13 +155,13 @@ fun AppointmentSummaryScreen(
                 SummaryItem(
                     icon = Icons.Default.CreditCard,
                     label = "Tipo de Licencia",
-                    value = "Licencia ${licenseType.category}"
+                    value = licenseType.name
                 )
                 
                 SummaryItem(
                     icon = Icons.Default.Description,
                     label = "Descripción",
-                    value = licenseType.name
+                    value = licenseDescription
                 )
                 
                 SummaryItem(
@@ -360,7 +372,7 @@ fun AppointmentSummaryScreen(
                             scheduledTime = displayTime,
                             location = "Centro de Licencias - Lima",
                             licenseTypeId = licenseType.id,
-                            notes = "Trámite para licencia ${licenseType.category}"
+                            notes = "Trámite para ${licenseType.name}"
                         )
                         
                         // Navegar inmediatamente sin esperar estado
@@ -390,16 +402,22 @@ fun SummaryItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Top
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(20.dp),
+            modifier = Modifier
+                .size(20.dp)
+                .padding(top = 2.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
@@ -407,8 +425,12 @@ fun SummaryItem(
             )
             Text(
                 text = value,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 4,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }

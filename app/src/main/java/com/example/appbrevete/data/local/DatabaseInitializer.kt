@@ -75,50 +75,52 @@ object DatabaseInitializer {
     
     fun getInitialLicenseTypes(): List<LicenseTypeEntity> {
         return listOf(
+            // Licencias de Motocicletas (Sistema Peruano)
+            LicenseTypeEntity(
+                id = "license-bii-a",
+                name = "CATEGORÍA BII-A",
+                description = "Motocicletas de dos y tres ruedas (con sidecar) para uso particular.",
+                category = LicenseCategory.BII_A,
+                ageRequirement = 18,
+                medicalExamRequired = true,
+                theoryExamRequired = true,
+                practicalExamRequired = true,
+                validityYears = 5,
+                price = 400.0,
+                isActive = true
+            ),
+            LicenseTypeEntity(
+                id = "license-bii-b",
+                name = "CATEGORÍA BII-B",
+                description = "Los mismos vehículos que la licencia BII-A y para motocicletas de cualquier cilindraje.",
+                category = LicenseCategory.BII_B,
+                ageRequirement = 18,
+                medicalExamRequired = true,
+                theoryExamRequired = true,
+                practicalExamRequired = true,
+                validityYears = 5,
+                price = 400.0,
+                isActive = true
+            ),
+            LicenseTypeEntity(
+                id = "license-bii-c",
+                name = "CATEGORÍA BII-C",
+                description = "Para mototaxis y trimotos destinadas al transporte de pasajeros.",
+                category = LicenseCategory.BII_C,
+                ageRequirement = 21,
+                medicalExamRequired = true,
+                theoryExamRequired = true,
+                practicalExamRequired = true,
+                validityYears = 3,
+                price = 650.0,
+                isActive = true
+            ),
+            // Licencias de Automóviles
             LicenseTypeEntity(
                 id = "license-a1",
-                name = "A1 - Motocicletas hasta 125cc",
-                description = "Para conducir motocicletas de hasta 125cc de cilindrada",
-                category = LicenseCategory.A1,
-                ageRequirement = 18,
-                medicalExamRequired = true,
-                theoryExamRequired = true,
-                practicalExamRequired = true,
-                validityYears = 5,
-                price = 45.0,
-                isActive = true
-            ),
-            LicenseTypeEntity(
-                id = "license-a2",
-                name = "A2 - Motocicletas hasta 300cc",
-                description = "Para conducir motocicletas de hasta 300cc de cilindrada",
-                category = LicenseCategory.A2,
-                ageRequirement = 18,
-                medicalExamRequired = true,
-                theoryExamRequired = true,
-                practicalExamRequired = true,
-                validityYears = 5,
-                price = 55.0,
-                isActive = true
-            ),
-            LicenseTypeEntity(
-                id = "license-a3",
-                name = "A3 - Motocicletas más de 300cc",
-                description = "Para conducir motocicletas de más de 300cc de cilindrada",
-                category = LicenseCategory.A3,
-                ageRequirement = 18,
-                medicalExamRequired = true,
-                theoryExamRequired = true,
-                practicalExamRequired = true,
-                validityYears = 5,
-                price = 65.0,
-                isActive = true
-            ),
-            LicenseTypeEntity(
-                id = "license-b1",
-                name = "B1 - Vehículos particulares",
+                name = "A-I - Vehículos particulares",
                 description = "Para conducir automóviles particulares hasta 3500kg",
-                category = LicenseCategory.B1,
+                category = LicenseCategory.A1,
                 ageRequirement = 18,
                 medicalExamRequired = true,
                 theoryExamRequired = true,
@@ -128,10 +130,10 @@ object DatabaseInitializer {
                 isActive = true
             ),
             LicenseTypeEntity(
-                id = "license-b2",
-                name = "B2 - Vehículos particulares con remolque",
+                id = "license-a2",
+                name = "A-II - Vehículos particulares con remolque",
                 description = "Para conducir automóviles particulares hasta 3500kg con remolque",
-                category = LicenseCategory.B2,
+                category = LicenseCategory.A2,
                 ageRequirement = 21,
                 medicalExamRequired = true,
                 theoryExamRequired = true,
@@ -141,10 +143,10 @@ object DatabaseInitializer {
                 isActive = true
             ),
             LicenseTypeEntity(
-                id = "license-c1",
-                name = "C1 - Vehículos de carga ligera",
+                id = "license-b1",
+                name = "B-I - Vehículos de carga ligera",
                 description = "Para conducir vehículos de carga hasta 7500kg",
-                category = LicenseCategory.C1,
+                category = LicenseCategory.B1,
                 ageRequirement = 21,
                 medicalExamRequired = true,
                 theoryExamRequired = true,

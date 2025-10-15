@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import com.example.appbrevete.domain.model.LicenseCategory
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -58,13 +59,16 @@ fun EditAppointmentScreen(
         appointmentsViewModel.loadAppointments(userId) 
     }
     
-    // Buscar la cita actual
-    LaunchedEffect(appointmentsUiState.appointments) {
+    // Buscar la cita actual y preseleccionar la licencia
+    LaunchedEffect(appointmentsUiState.appointments, licenseTypesUiState.licenseTypes) {
         val appointment = appointmentsUiState.appointments.find { it.id == appointmentId }
         if (appointment != null && originalAppointment == null) {
             originalAppointment = appointment
-            // Pre-seleccionar datos actuales
-            selectedLicenseType = licenseTypesUiState.licenseTypes.find { it.id == appointment.licenseTypeId }
+            
+            // Pre-seleccionar la licencia actual si aún no se ha seleccionado una diferente
+            if (selectedLicenseType == null) {
+                selectedLicenseType = licenseTypesUiState.licenseTypes.find { it.id == appointment.licenseTypeId }
+            }
             
             // Convertir timestamp a LocalDate
             try {
@@ -157,6 +161,7 @@ fun EditAppointmentScreen(
                     newLicenseType = selectedLicenseType,
                     newDate = selectedDate,
                     newTime = selectedTime,
+                    licenseTypes = licenseTypesUiState.licenseTypes,
                     onConfirm = { showConfirmDialog = true },
                     onBack = {
                         currentStep = EditStep.DATE_TIME_SELECTION
@@ -189,7 +194,7 @@ fun EditAppointmentScreen(
                                             licenseTypeId = licenseType.id,
                                             scheduledDate = calendar.timeInMillis,
                                             scheduledTime = time,
-                                            notes = "Trámite para licencia ${licenseType.category} (Actualizado)"
+                                            notes = "Trámite para ${licenseType.name} (Actualizado)"
                                         )
                                         
                                         appointmentsViewModel.updateAppointment(updatedAppointment)
@@ -374,7 +379,7 @@ fun LicenseSelectionStep(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Licencia actual: ${originalLicense.category} - ${originalLicense.name}",
+                            text = "Licencia actual: ${originalLicense.name}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -392,7 +397,8 @@ fun LicenseSelectionStep(
             items(licenseTypes) { licenseType ->
                 LicenseTypeCard(
                     licenseType = licenseType,
-                    isSelected = selectedLicenseType?.id == licenseType.id,
+                    isSelected = selectedLicenseType?.id == licenseType.id || 
+                               (selectedLicenseType == null && originalLicenseTypeId == licenseType.id),
                     onClick = { onLicenseSelected(licenseType) }
                 )
             }
@@ -521,6 +527,7 @@ fun ConfirmationStep(
     newLicenseType: LicenseType?,
     newDate: LocalDate?,
     newTime: String?,
+    licenseTypes: List<LicenseType>,
     onConfirm: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -548,10 +555,11 @@ fun ConfirmationStep(
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 if (newLicenseType != null) {
+                    val originalLicenseName = licenseTypes.find { it.id == originalAppointment?.licenseTypeId }?.name ?: "N/A"
                     ComparisonItem(
                         label = "Tipo de Licencia",
-                        oldValue = "Actual: ${originalAppointment?.licenseTypeId ?: "N/A"}",
-                        newValue = "Nuevo: ${newLicenseType.category} - ${newLicenseType.name}"
+                        oldValue = "Actual: $originalLicenseName",
+                        newValue = "Nuevo: ${newLicenseType.name}"
                     )
                 }
                 
@@ -728,11 +736,16 @@ fun LicenseTypeCard(
                         Box(
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = licenseType.category.name,
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.Bold
+                            Icon(
+                                imageVector = when (licenseType.category) {
+                                    LicenseCategory.BII_A, LicenseCategory.BII_B, LicenseCategory.BII_C -> Icons.Default.TwoWheeler
+                                    LicenseCategory.A1, LicenseCategory.A2 -> Icons.Default.DirectionsCar
+                                    LicenseCategory.B1, LicenseCategory.B2, LicenseCategory.B3 -> Icons.Default.LocalShipping
+                                    else -> Icons.Default.CreditCard
+                                },
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
                     }
@@ -751,7 +764,7 @@ fun LicenseTypeCard(
                             }
                         )
                         Text(
-                            text = "Licencia ${licenseType.category.name}",
+                            text = licenseType.description,
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isSelected) {
                                 MaterialTheme.colorScheme.onPrimaryContainer
@@ -762,20 +775,8 @@ fun LicenseTypeCard(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = licenseType.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (isSelected) {
-                        MaterialTheme.colorScheme.onPrimaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                )
+                Spacer(modifier = Modifier.width(12.dp))
             }
-            
-            Spacer(modifier = Modifier.width(12.dp))
             
             Column(
                 horizontalAlignment = Alignment.End

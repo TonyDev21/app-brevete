@@ -32,6 +32,7 @@ import com.example.appbrevete.presentation.classes.ClassesScreen
 import com.example.appbrevete.presentation.exam.ExamSimulatorScreen
 import com.example.appbrevete.presentation.home.HomeScreen
 import com.example.appbrevete.presentation.license.LicenseTypesScreen
+import com.example.appbrevete.presentation.license.LicenseDetailScreen
 import com.example.appbrevete.presentation.profile.ProfileScreen
 import com.example.appbrevete.presentation.auth.LoginScreen
 import com.example.appbrevete.presentation.auth.RegisterScreen
@@ -173,6 +174,15 @@ fun MainAppNavigation(
                         },
                         onNavigateToProfile = {
                             navController.navigate(Screen.Profile.route) {
+                                popUpTo(navController.graph.startDestinationId) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
+                        onNavigateToLicenses = {
+                            navController.navigate(Screen.LicenseTypes.route) {
                                 popUpTo(navController.graph.startDestinationId) {
                                     saveState = true
                                 }
@@ -330,7 +340,68 @@ fun MainAppNavigation(
                     ExamSimulatorScreen()
                 }
                 composable(Screen.LicenseTypes.route) {
-                    LicenseTypesScreen()
+                    LicenseTypesScreen(
+                        onNavigateToLicenseDetail = { licenseType ->
+                            val encodedId = java.net.URLEncoder.encode(licenseType.id, "UTF-8")
+                            val encodedName = java.net.URLEncoder.encode(licenseType.name, "UTF-8")
+                            val encodedDescription = java.net.URLEncoder.encode(licenseType.description, "UTF-8")
+                            navController.navigate("${Screen.LicenseDetail.route}/$encodedId/${licenseType.category}/$encodedName/$encodedDescription/${licenseType.ageRequirement}/${licenseType.validityYears}/${licenseType.price}")
+                        }
+                    )
+                }
+                composable("${Screen.LicenseDetail.route}/{licenseId}/{category}/{name}/{description}/{ageRequirement}/{validityYears}/{price}") { backStackEntry ->
+                    val licenseId = backStackEntry.arguments?.getString("licenseId") ?: ""
+                    val categoryString = backStackEntry.arguments?.getString("category") ?: ""
+                    val encodedName = backStackEntry.arguments?.getString("name") ?: ""
+                    val encodedDescription = backStackEntry.arguments?.getString("description") ?: ""
+                    val ageRequirement = backStackEntry.arguments?.getString("ageRequirement")?.toIntOrNull() ?: 18
+                    val validityYears = backStackEntry.arguments?.getString("validityYears")?.toIntOrNull() ?: 5
+                    val price = backStackEntry.arguments?.getString("price")?.toDoubleOrNull() ?: 0.0
+                    
+                    // Decodificar los parámetros
+                    val decodedId = try {
+                        java.net.URLDecoder.decode(licenseId, "UTF-8")
+                    } catch (e: Exception) {
+                        licenseId
+                    }
+                    
+                    val decodedName = try {
+                        java.net.URLDecoder.decode(encodedName, "UTF-8")
+                    } catch (e: Exception) {
+                        encodedName
+                    }
+                    
+                    val decodedDescription = try {
+                        java.net.URLDecoder.decode(encodedDescription, "UTF-8")
+                    } catch (e: Exception) {
+                        encodedDescription
+                    }
+                    
+                    val category = try {
+                        com.example.appbrevete.domain.model.LicenseCategory.valueOf(categoryString)
+                    } catch (e: Exception) {
+                        com.example.appbrevete.domain.model.LicenseCategory.BII_A
+                    }
+                    
+                    val licenseType = com.example.appbrevete.domain.model.LicenseType(
+                        id = decodedId,
+                        name = decodedName,
+                        description = decodedDescription,
+                        category = category,
+                        ageRequirement = ageRequirement,
+                        validityYears = validityYears,
+                        price = price,
+                        isActive = true
+                    )
+                    
+                    LicenseDetailScreen(
+                        licenseType = licenseType,
+                        onNavigateBack = { navController.popBackStack() },
+                        onCreateAppointment = {
+                            // Navegar a crear cita con el tipo de licencia seleccionado
+                            navController.navigate(Screen.CreateAppointment.route)
+                        }
+                    )
                 }
                 composable(Screen.Profile.route) {
                     ProfileScreen(
@@ -541,6 +612,7 @@ sealed class Screen(val route: String) {
     object Classes : Screen("classes")
     object ExamSimulator : Screen("exam_simulator")
     object LicenseTypes : Screen("license_types")
+    object LicenseDetail : Screen("license_detail")
     object Profile : Screen("profile")
     object Admin : Screen("admin")
     object Login : Screen("login")

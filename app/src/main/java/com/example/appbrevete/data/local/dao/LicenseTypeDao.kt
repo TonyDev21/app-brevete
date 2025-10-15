@@ -34,4 +34,7 @@ interface LicenseTypeDao {
     
     @Query("UPDATE license_types SET isActive = 0 WHERE id = :licenseTypeId")
     suspend fun deactivateLicenseType(licenseTypeId: String)
+    
+    @Query("DELETE FROM license_types")
+    suspend fun deleteAllLicenseTypes()
 }

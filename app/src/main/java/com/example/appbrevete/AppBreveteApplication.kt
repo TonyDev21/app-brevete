@@ -26,22 +26,29 @@ class AppBreveteApplication : Application() {
     
     private suspend fun initializeDatabase() {
         try {
+            // Siempre forzar actualización de tipos de licencia para el sistema peruano
+            println("DEBUG: Reinicializando tipos de licencia...")
+            database.licenseTypeDao().deleteAllLicenseTypes()
+            val initialLicenseTypes = DatabaseInitializer.getInitialLicenseTypes()
+            database.licenseTypeDao().insertLicenseTypes(initialLicenseTypes)
+            println("DEBUG: Insertados ${initialLicenseTypes.size} tipos de licencia")
+            
             // Verificar si ya hay usuarios en la base de datos
             val userCount = database.userDao().getUserCountByRole(com.example.appbrevete.domain.model.UserRole.ADMIN)
             
             if (userCount == 0) {
-                // Solo insertar datos si la base de datos está vacía
+                // Solo insertar usuarios si la base de datos está vacía
                 val initialUsers = DatabaseInitializer.getInitialUsers()
                 initialUsers.forEach { user ->
                     database.userDao().insertUser(user)
                 }
-                
-                val initialLicenseTypes = DatabaseInitializer.getInitialLicenseTypes()
-                database.licenseTypeDao().insertLicenseTypes(initialLicenseTypes)
+                println("DEBUG: Insertados ${initialUsers.size} usuarios")
             }
+            
         } catch (e: Exception) {
             // Log del error pero no crashear la app
             e.printStackTrace()
+            println("DEBUG: Error al inicializar base de datos: ${e.message}")
         }
     }
 }
