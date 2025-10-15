@@ -37,8 +37,12 @@ fun AppointmentSummaryScreen(
         "license-bii-a" to "Motocicletas de dos y tres ruedas (con sidecar) para uso particular.",
         "license-bii-b" to "Los mismos vehículos que la licencia BII-A y para motocicletas de cualquier cilindraje.",
         "license-bii-c" to "Para mototaxis y trimotos destinadas al transporte de pasajeros.",
-        "license-a1" to "Automóviles particulares hasta 2500 kg de peso bruto vehicular.",
-        "license-a2a" to "Automóviles y camionetas hasta 3500 kg de peso bruto vehicular."
+        "license-a-i" to "Vehículos particulares (Sedán, Coupé, Pick-up, Station Wagon, etc.). Máx. 9 asientos y 3.5 toneladas.",
+        "license-a-iia" to "Vehículos de transporte de personas y mercancías hasta 3.5 toneladas (Taxis, ambulancias, furgonetas, y todos los de la cat. A-I).",
+        "license-a-iib" to "Minibuses (máx. 16 asientos, 4 toneladas), furgonetas (máx. 7 toneladas), y todos los de A-I y A-IIa.",
+        "license-a-iiia" to "Ómnibus, buses y vehículos de transporte de personas (más de 6 toneladas).",
+        "license-a-iiib" to "Vehículos de transporte de carga (camiones rígidos de más de 12 toneladas) y todos los de A-I y A-IIa.",
+        "license-a-iiic" to "Todos los vehículos de las categorías A-I, A-IIa, A-IIb, A-IIIa y A-IIIb."
     )
     
     val licenseDescription = licenseDescriptions[licenseType.id] ?: "Descripción no disponible"

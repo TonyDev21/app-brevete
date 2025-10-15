@@ -739,8 +739,7 @@ fun LicenseTypeCard(
                             Icon(
                                 imageVector = when (licenseType.category) {
                                     LicenseCategory.BII_A, LicenseCategory.BII_B, LicenseCategory.BII_C -> Icons.Default.TwoWheeler
-                                    LicenseCategory.A1, LicenseCategory.A2 -> Icons.Default.DirectionsCar
-                                    LicenseCategory.B1, LicenseCategory.B2, LicenseCategory.B3 -> Icons.Default.LocalShipping
+                                    LicenseCategory.A_I, LicenseCategory.A_IIA, LicenseCategory.A_IIB, LicenseCategory.A_IIIA, LicenseCategory.A_IIIB, LicenseCategory.A_IIIC -> Icons.Default.DirectionsCar
                                     else -> Icons.Default.CreditCard
                                 },
                                 contentDescription = null,

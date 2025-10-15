@@ -104,11 +104,12 @@ fun LicenseTypesScreen(
                             com.example.appbrevete.domain.model.LicenseCategory.BII_C
                         )
                         VehicleCategory.CARS -> licenseType.category in listOf(
-                            com.example.appbrevete.domain.model.LicenseCategory.A1,
-                            com.example.appbrevete.domain.model.LicenseCategory.A2,
-                            com.example.appbrevete.domain.model.LicenseCategory.B1,
-                            com.example.appbrevete.domain.model.LicenseCategory.B2,
-                            com.example.appbrevete.domain.model.LicenseCategory.B3
+                            com.example.appbrevete.domain.model.LicenseCategory.A_I,
+                            com.example.appbrevete.domain.model.LicenseCategory.A_IIA,
+                            com.example.appbrevete.domain.model.LicenseCategory.A_IIB,
+                            com.example.appbrevete.domain.model.LicenseCategory.A_IIIA,
+                            com.example.appbrevete.domain.model.LicenseCategory.A_IIIB,
+                            com.example.appbrevete.domain.model.LicenseCategory.A_IIIC
                         )
                     }
                 }
@@ -214,11 +215,12 @@ fun LicenseTypeCard(
                                 com.example.appbrevete.domain.model.LicenseCategory.BII_A,
                                 com.example.appbrevete.domain.model.LicenseCategory.BII_B,
                                 com.example.appbrevete.domain.model.LicenseCategory.BII_C -> Icons.Default.TwoWheeler
-                                com.example.appbrevete.domain.model.LicenseCategory.A1,
-                                com.example.appbrevete.domain.model.LicenseCategory.A2 -> Icons.Default.DirectionsCar
-                                com.example.appbrevete.domain.model.LicenseCategory.B1,
-                                com.example.appbrevete.domain.model.LicenseCategory.B2,
-                                com.example.appbrevete.domain.model.LicenseCategory.B3 -> Icons.Default.LocalShipping
+                                com.example.appbrevete.domain.model.LicenseCategory.A_I,
+                                com.example.appbrevete.domain.model.LicenseCategory.A_IIA,
+                                com.example.appbrevete.domain.model.LicenseCategory.A_IIB,
+                                com.example.appbrevete.domain.model.LicenseCategory.A_IIIA,
+                                com.example.appbrevete.domain.model.LicenseCategory.A_IIIB,
+                                com.example.appbrevete.domain.model.LicenseCategory.A_IIIC -> Icons.Default.DirectionsCar
                                 else -> Icons.Default.CreditCard
                             },
                             contentDescription = null,

@@ -20,14 +20,11 @@ enum class LicenseCategory {
     BII_B,  // Motocicletas hasta 250cc  
     BII_C,  // Motocicletas de más de 250cc
     
-    // Licencias de automóviles
-    A1,  // Vehículos particulares hasta 3500kg
-    A2,  // Vehículos particulares hasta 3500kg con remolque
-    B1,  // Vehículos de carga hasta 7500kg
-    B2,  // Vehículos de carga hasta 12000kg
-    B3,  // Vehículos de carga de más de 12000kg
-    C1,  // Vehículos de transporte público hasta 16 pasajeros
-    C2,  // Vehículos de transporte público de más de 16 pasajeros
-    D1,  // Vehículos especiales
-    D2   // Vehículos de emergencia
+    // Licencias de automóviles (Sistema Peruano)
+    A_I,    // Vehículos particulares menores
+    A_IIA,  // Vehículos particulares medianos
+    A_IIB,  // Vehículos particulares medianos con remolque
+    A_IIIA, // Vehículos particulares pesados
+    A_IIIB, // Vehículos particulares pesados con remolque
+    A_IIIC  // Categoría máxima - todos los vehículos
 }

@@ -231,7 +231,7 @@ fun MainAppNavigation(
                     val category = try {
                         com.example.appbrevete.domain.model.LicenseCategory.valueOf(categoryString)
                     } catch (e: Exception) {
-                        com.example.appbrevete.domain.model.LicenseCategory.B1
+                        com.example.appbrevete.domain.model.LicenseCategory.BII_A
                     }
                     
                     val licenseType = com.example.appbrevete.domain.model.LicenseType(
@@ -280,7 +280,7 @@ fun MainAppNavigation(
                     val category = try {
                         com.example.appbrevete.domain.model.LicenseCategory.valueOf(categoryString)
                     } catch (e: Exception) {
-                        com.example.appbrevete.domain.model.LicenseCategory.B1
+                        com.example.appbrevete.domain.model.LicenseCategory.BII_A
                     }
                     
                     val licenseType = com.example.appbrevete.domain.model.LicenseType(
