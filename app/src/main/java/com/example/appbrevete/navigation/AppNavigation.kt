@@ -29,6 +29,8 @@ import com.example.appbrevete.presentation.appointments.DateTimeSelectionScreen
 import com.example.appbrevete.presentation.appointments.AppointmentSummaryScreen
 import com.example.appbrevete.presentation.appointments.EditAppointmentScreen
 import com.example.appbrevete.presentation.classes.ClassesScreen
+import com.example.appbrevete.presentation.classes.CreateDrivingClassScreen
+import com.example.appbrevete.presentation.classes.EditDrivingClassScreen
 import com.example.appbrevete.presentation.exam.ExamSimulatorScreen
 import com.example.appbrevete.presentation.home.HomeScreen
 import com.example.appbrevete.presentation.license.LicenseTypesScreen
@@ -334,7 +336,34 @@ fun MainAppNavigation(
                     )
                 }
                 composable(Screen.Classes.route) {
-                    ClassesScreen()
+                    ClassesScreen(
+                        userId = currentUser.id,
+                        onNavigateToBooking = {
+                            navController.navigate(Screen.ClassBooking.route)
+                        },
+                        onNavigateToEdit = { classId ->
+                            navController.navigate("${Screen.EditDrivingClass.route}/$classId")
+                        }
+                    )
+                }
+                composable(Screen.ClassBooking.route) {
+                    CreateDrivingClassScreen(
+                        userId = currentUser.id,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                composable("${Screen.EditDrivingClass.route}/{classId}") { backStackEntry ->
+                    val classId = backStackEntry.arguments?.getString("classId") ?: ""
+                    
+                    EditDrivingClassScreen(
+                        userId = currentUser.id,
+                        classId = classId,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
                 composable(Screen.ExamSimulator.route) {
                     ExamSimulatorScreen()
@@ -610,6 +639,8 @@ sealed class Screen(val route: String) {
     object DateTimeSelection : Screen("datetime_selection")
     object AppointmentSummary : Screen("appointment_summary")
     object Classes : Screen("classes")
+    object ClassBooking : Screen("class_booking")
+    object EditDrivingClass : Screen("edit_driving_class")
     object ExamSimulator : Screen("exam_simulator")
     object LicenseTypes : Screen("license_types")
     object LicenseDetail : Screen("license_detail")

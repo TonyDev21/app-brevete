@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.appbrevete.domain.model.User
 import com.example.appbrevete.domain.model.Appointment
+import com.example.appbrevete.domain.model.DrivingClass
 import com.example.appbrevete.domain.model.UserRole
 import com.example.appbrevete.presentation.viewmodel.HomeViewModel
 import java.time.LocalDate
@@ -26,6 +27,15 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import android.os.Build
 import androidx.annotation.RequiresApi
+
+// Data class para unificar citas y clases próximas
+data class UpcomingEvent(
+    val title: String,
+    val date: String,
+    val time: String,
+    val status: String,
+    val type: String // "appointment" o "class"
+)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -81,13 +91,17 @@ fun HomeScreen(
                 StatsCard(
                     totalAppointments = uiState.totalAppointments,
                     completedAppointments = uiState.completedAppointments,
-                    pendingAppointments = uiState.pendingAppointments
+                    pendingAppointments = uiState.pendingAppointments,
+                    totalClasses = uiState.totalClasses,
+                    completedClasses = uiState.completedClasses,
+                    pendingClasses = uiState.pendingClasses
                 )
             }
             
             item {
                 UpcomingAppointmentsCard(
-                    appointments = uiState.upcomingAppointments
+                    appointments = uiState.upcomingAppointments,
+                    drivingClasses = uiState.upcomingClasses
                 )
             }
             
@@ -192,7 +206,10 @@ fun QuickActionsCard(
 fun StatsCard(
     totalAppointments: Int,
     completedAppointments: Int,
-    pendingAppointments: Int
+    pendingAppointments: Int,
+    totalClasses: Int,
+    completedClasses: Int,
+    pendingClasses: Int
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -213,17 +230,17 @@ fun StatsCard(
             ) {
                 StatItem(
                     title = "Total",
-                    value = totalAppointments.toString(),
+                    value = (totalAppointments + totalClasses).toString(),
                     icon = Icons.Filled.Event
                 )
                 StatItem(
                     title = "Completadas",
-                    value = completedAppointments.toString(),
+                    value = (completedAppointments + completedClasses).toString(),
                     icon = Icons.Filled.CheckCircle
                 )
                 StatItem(
                     title = "Pendientes",
-                    value = pendingAppointments.toString(),
+                    value = (pendingAppointments + pendingClasses).toString(),
                     icon = Icons.Filled.Schedule
                 )
             }
@@ -233,7 +250,39 @@ fun StatsCard(
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun UpcomingAppointmentsCard(appointments: List<Appointment>) {
+fun UpcomingAppointmentsCard(appointments: List<Appointment>, drivingClasses: List<DrivingClass>) {
+    // Combinar citas y clases próximas
+    val upcomingEvents = mutableListOf<UpcomingEvent>()
+    
+    // Agregar citas médicas
+    appointments.forEach { appointment ->
+        upcomingEvents.add(
+            UpcomingEvent(
+                title = getAppointmentTypeDisplayName(appointment.type.name),
+                date = formatDate(appointment.scheduledDate),
+                time = appointment.scheduledTime,
+                status = getAppointmentStatusDisplayName(appointment.status.name),
+                type = "appointment"
+            )
+        )
+    }
+    
+    // Agregar clases de manejo
+    drivingClasses.forEach { drivingClass ->
+        upcomingEvents.add(
+            UpcomingEvent(
+                title = getDrivingClassTypeDisplayName(drivingClass.packageType),
+                date = formatDate(drivingClass.scheduledDate),
+                time = drivingClass.scheduledTime,
+                status = getDrivingClassStatusDisplayName(drivingClass.status),
+                type = "class"
+            )
+        )
+    }
+    
+    // Ordenar por fecha
+    val sortedEvents = upcomingEvents.sortedBy { it.date }
+    
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -247,7 +296,7 @@ fun UpcomingAppointmentsCard(appointments: List<Appointment>) {
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            if (appointments.isEmpty()) {
+            if (sortedEvents.isEmpty()) {
                 Text(
                     text = "No tienes citas próximas",
                     fontSize = 14.sp,
@@ -256,15 +305,15 @@ fun UpcomingAppointmentsCard(appointments: List<Appointment>) {
                     textAlign = TextAlign.Center
                 )
             } else {
-                // Lista de citas próximas
-                appointments.take(3).forEachIndexed { index, appointment ->
+                // Lista de citas próximas - mostrar todas
+                sortedEvents.forEachIndexed { index, event ->
                     AppointmentItem(
-                        title = getAppointmentTypeDisplayName(appointment.type.name),
-                        date = formatDate(appointment.scheduledDate),
-                        time = appointment.scheduledTime,
-                        status = getAppointmentStatusDisplayName(appointment.status.name)
+                        title = event.title,
+                        date = event.date,
+                        time = event.time,
+                        status = event.status
                     )
-                    if (index < 2 && index < appointments.size - 1) {
+                    if (index < sortedEvents.size - 1) {
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
@@ -517,4 +566,25 @@ private fun getQuickActions(
     }
     
     return actions
+}
+
+// Función auxiliar para obtener el nombre del tipo de clase de manejo
+private fun getDrivingClassTypeDisplayName(packageType: com.example.appbrevete.domain.model.DrivingPackageType): String {
+    return when (packageType) {
+        com.example.appbrevete.domain.model.DrivingPackageType.BASIC_2H -> "Clase 2 Horas"
+        com.example.appbrevete.domain.model.DrivingPackageType.STANDARD_4H -> "Clase 4 Horas"
+        com.example.appbrevete.domain.model.DrivingPackageType.CUSTOM -> "Clase Personalizada"
+    }
+}
+
+// Función auxiliar para obtener el estado de la clase de manejo
+private fun getDrivingClassStatusDisplayName(status: com.example.appbrevete.domain.model.DrivingClassStatus): String {
+    return when (status) {
+        com.example.appbrevete.domain.model.DrivingClassStatus.SCHEDULED -> "Programada"
+        com.example.appbrevete.domain.model.DrivingClassStatus.CONFIRMED -> "Confirmada"
+        com.example.appbrevete.domain.model.DrivingClassStatus.IN_PROGRESS -> "En Progreso"
+        com.example.appbrevete.domain.model.DrivingClassStatus.COMPLETED -> "Completada"
+        com.example.appbrevete.domain.model.DrivingClassStatus.CANCELLED -> "Cancelada"
+        com.example.appbrevete.domain.model.DrivingClassStatus.RESCHEDULED -> "Reprogramada"
+    }
 }

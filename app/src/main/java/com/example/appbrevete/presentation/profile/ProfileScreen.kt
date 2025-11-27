@@ -59,12 +59,12 @@ fun ProfileScreen(
             AccountStatsCard(
                 totalAppointments = uiState.totalAppointments,
                 completedAppointments = uiState.completedAppointments,
+                totalClasses = uiState.totalClasses,
+                completedClasses = uiState.completedClasses,
                 memberSince = formatMemberSince(currentUser.createdAt)
             )
             
             QuickActionsCard()
-            
-            AppSettingsCard()
             
             AccountActionsCard(onLogout = onLogout)
         }
@@ -201,6 +201,8 @@ fun PersonalInfoCard(user: User) {
 fun AccountStatsCard(
     totalAppointments: Int,
     completedAppointments: Int,
+    totalClasses: Int,
+    completedClasses: Int,
     memberSince: String
 ) {
     Card(
@@ -222,12 +224,12 @@ fun AccountStatsCard(
             ) {
                 StatItem(
                     title = "Citas Totales",
-                    value = totalAppointments.toString(),
+                    value = (totalAppointments + totalClasses).toString(),
                     icon = Icons.Filled.Event
                 )
                 StatItem(
                     title = "Completadas",
-                    value = completedAppointments.toString(),
+                    value = (completedAppointments + completedClasses).toString(),
                     icon = Icons.Filled.CheckCircle
                 )
             }

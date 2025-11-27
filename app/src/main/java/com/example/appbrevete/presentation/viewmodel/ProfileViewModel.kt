@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.appbrevete.domain.model.User
 import com.example.appbrevete.domain.repository.UserRepository
 import com.example.appbrevete.domain.repository.AppointmentRepository
+import com.example.appbrevete.domain.repository.DrivingClassRepository
 import com.example.appbrevete.domain.model.AppointmentStatus
+import com.example.appbrevete.domain.model.DrivingClassStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,6 +19,8 @@ data class ProfileUiState(
     val user: User? = null,
     val totalAppointments: Int = 0,
     val completedAppointments: Int = 0,
+    val totalClasses: Int = 0,
+    val completedClasses: Int = 0,
     val isLoading: Boolean = false,
     val isUpdating: Boolean = false,
     val updateSuccess: Boolean = false,
@@ -26,7 +30,8 @@ data class ProfileUiState(
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val appointmentRepository: AppointmentRepository
+    private val appointmentRepository: AppointmentRepository,
+    private val drivingClassRepository: DrivingClassRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -41,15 +46,24 @@ class ProfileViewModel @Inject constructor(
                 
                 // Cargar estadísticas de citas del usuario
                 appointmentRepository.getAppointmentsByUser(userId).collect { appointments ->
-                    val totalAppointments = appointments.size
-                    val completedAppointments = appointments.count { it.status == AppointmentStatus.COMPLETED }
+                    val activeAppointments = appointments.filter { it.status != AppointmentStatus.CANCELLED }
+                    val totalAppointments = activeAppointments.size
+                    val completedAppointments = activeAppointments.count { it.status == AppointmentStatus.COMPLETED }
                     
-                    _uiState.value = _uiState.value.copy(
-                        user = user,
-                        totalAppointments = totalAppointments,
-                        completedAppointments = completedAppointments,
-                        isLoading = false
-                    )
+                    // Cargar estadísticas de clases de manejo
+                    drivingClassRepository.getClassesByStudent(userId).collect { classes ->
+                        val totalClasses = classes.size
+                        val completedClasses = classes.count { it.status == DrivingClassStatus.COMPLETED }
+                        
+                        _uiState.value = _uiState.value.copy(
+                            user = user,
+                            totalAppointments = totalAppointments,
+                            completedAppointments = completedAppointments,
+                            totalClasses = totalClasses,
+                            completedClasses = completedClasses,
+                            isLoading = false
+                        )
+                    }
                 }
                 
             } catch (e: Exception) {
