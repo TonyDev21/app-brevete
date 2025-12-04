@@ -9,6 +9,8 @@ interface AppointmentRepository {
     
     suspend fun getAppointmentById(id: String): Appointment?
     
+    fun getAllAppointments(): Flow<List<Appointment>>
+    
     fun getAppointmentsByUser(userId: String): Flow<List<Appointment>>
     
     fun getAppointmentsByUserAndStatus(userId: String, status: AppointmentStatus): Flow<List<Appointment>>

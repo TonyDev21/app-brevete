@@ -4,10 +4,12 @@ import com.example.appbrevete.data.repository.UserRepositoryImpl
 import com.example.appbrevete.data.repository.LicenseTypeRepositoryImpl
 import com.example.appbrevete.data.repository.AppointmentRepositoryImpl
 import com.example.appbrevete.data.repository.DrivingClassRepositoryImpl
+import com.example.appbrevete.data.repository.MedicalEvaluationRepositoryImpl
 import com.example.appbrevete.domain.repository.UserRepository
 import com.example.appbrevete.domain.repository.LicenseTypeRepository
 import com.example.appbrevete.domain.repository.AppointmentRepository
 import com.example.appbrevete.domain.repository.DrivingClassRepository
+import com.example.appbrevete.domain.repository.MedicalEvaluationRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindDrivingClassRepository(
         drivingClassRepositoryImpl: DrivingClassRepositoryImpl
     ): DrivingClassRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindMedicalEvaluationRepository(
+        medicalEvaluationRepositoryImpl: MedicalEvaluationRepositoryImpl
+    ): MedicalEvaluationRepository
 }

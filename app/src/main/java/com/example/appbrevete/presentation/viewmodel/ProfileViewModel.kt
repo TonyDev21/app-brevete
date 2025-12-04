@@ -42,28 +42,36 @@ class ProfileViewModel @Inject constructor(
             try {
                 _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
                 
+                // Always get fresh data from database
                 val user = userRepository.getUserById(userId)
                 
-                // Cargar estadísticas de citas del usuario
-                appointmentRepository.getAppointmentsByUser(userId).collect { appointments ->
-                    val activeAppointments = appointments.filter { it.status != AppointmentStatus.CANCELLED }
-                    val totalAppointments = activeAppointments.size
-                    val completedAppointments = activeAppointments.count { it.status == AppointmentStatus.COMPLETED }
-                    
-                    // Cargar estadísticas de clases de manejo
-                    drivingClassRepository.getClassesByStudent(userId).collect { classes ->
-                        val totalClasses = classes.size
-                        val completedClasses = classes.count { it.status == DrivingClassStatus.COMPLETED }
+                if (user != null) {
+                    // Cargar estadísticas de citas del usuario
+                    appointmentRepository.getAppointmentsByUser(userId).collect { appointments ->
+                        val activeAppointments = appointments.filter { it.status != AppointmentStatus.CANCELLED }
+                        val totalAppointments = activeAppointments.size
+                        val completedAppointments = activeAppointments.count { it.status == AppointmentStatus.COMPLETED }
                         
-                        _uiState.value = _uiState.value.copy(
-                            user = user,
-                            totalAppointments = totalAppointments,
-                            completedAppointments = completedAppointments,
-                            totalClasses = totalClasses,
-                            completedClasses = completedClasses,
-                            isLoading = false
-                        )
+                        // Cargar estadísticas de clases de manejo
+                        drivingClassRepository.getClassesByStudent(userId).collect { classes ->
+                            val totalClasses = classes.size
+                            val completedClasses = classes.count { it.status == DrivingClassStatus.COMPLETED }
+                            
+                            _uiState.value = _uiState.value.copy(
+                                user = user,
+                                totalAppointments = totalAppointments,
+                                completedAppointments = completedAppointments,
+                                totalClasses = totalClasses,
+                                completedClasses = completedClasses,
+                                isLoading = false
+                            )
+                        }
                     }
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        errorMessage = "Usuario no encontrado"
+                    )
                 }
                 
             } catch (e: Exception) {

@@ -23,6 +23,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.example.appbrevete.presentation.admin.AdminScreen
+import com.example.appbrevete.presentation.admin.AdminManageAppointmentsScreen
+import com.example.appbrevete.presentation.admin.AdminManageClassesScreenNew
+import com.example.appbrevete.presentation.admin.MedicalEvaluationScreen
+import com.example.appbrevete.presentation.admin.DrivingClassEvaluationScreen
+import com.example.appbrevete.presentation.admin.CreateAdminUserScreen
 import com.example.appbrevete.presentation.appointments.AppointmentsScreen
 import com.example.appbrevete.presentation.appointments.CreateAppointmentScreen
 import com.example.appbrevete.presentation.appointments.DateTimeSelectionScreen
@@ -34,8 +39,18 @@ import com.example.appbrevete.presentation.classes.EditDrivingClassScreen
 import com.example.appbrevete.presentation.exam.ExamSimulatorScreen
 import com.example.appbrevete.presentation.home.HomeScreen
 import com.example.appbrevete.presentation.license.LicenseTypesScreen
+import com.example.appbrevete.presentation.rules.TrafficRulesScreen
+import com.example.appbrevete.presentation.rules.CarCategoriesScreen
+import com.example.appbrevete.presentation.rules.MotorcycleCategoriesScreen
+import com.example.appbrevete.presentation.rules.RulesPdfViewerScreen
+import com.example.appbrevete.presentation.rules.MotorcycleRulesPdfViewerScreen
+import com.example.appbrevete.presentation.rules.TrafficRuleQuizScreen
+import com.example.appbrevete.domain.model.VehicleCategory
+import com.example.appbrevete.domain.model.CarLicenseCategory
+import com.example.appbrevete.domain.model.MotorcycleLicenseCategory
 import com.example.appbrevete.presentation.license.LicenseDetailScreen
 import com.example.appbrevete.presentation.profile.ProfileScreen
+import com.example.appbrevete.presentation.profile.EditProfileScreen
 import com.example.appbrevete.presentation.auth.LoginScreen
 import com.example.appbrevete.presentation.auth.RegisterScreen
 import com.example.appbrevete.presentation.viewmodel.AuthViewModel
@@ -84,6 +99,12 @@ fun MainAppNavigation(
     currentUser: User,
     onLogout: () -> Unit
 ) {
+    val authViewModel: AuthViewModel = hiltViewModel()
+    val currentUserFromAuth by authViewModel.currentUser.collectAsStateWithLifecycle()
+    
+    // Always use the most current user data
+    val userToUse = currentUserFromAuth ?: currentUser
+    
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -97,7 +118,7 @@ fun MainAppNavigation(
                 modifier = Modifier.width(280.dp)
             ) {
                 DrawerContent(
-                    currentUser = currentUser,
+                    currentUser = userToUse,
                     currentRoute = currentRoute,
                     onNavigate = { route ->
                         navController.navigate(route) {
@@ -148,14 +169,21 @@ fun MainAppNavigation(
                 )
             }
         ) { paddingValues ->
+            // Determinar la pantalla de inicio según el rol
+            val startDestination = if (userToUse.role == UserRole.ADMIN) {
+                Screen.Admin.route
+            } else {
+                Screen.Home.route
+            }
+            
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route,
+                startDestination = startDestination,
                 modifier = Modifier.padding(paddingValues)
             ) {
                 composable(Screen.Home.route) {
                     HomeScreen(
-                        currentUser = currentUser,
+                        currentUser = userToUse,
                         onNavigateToAppointments = {
                             navController.navigate(Screen.Appointments.route) {
                                 popUpTo(navController.graph.startDestinationId) {
@@ -365,8 +393,101 @@ fun MainAppNavigation(
                         }
                     )
                 }
-                composable(Screen.ExamSimulator.route) {
-                    ExamSimulatorScreen()
+                composable(Screen.TrafficRules.route) {
+                    TrafficRulesScreen(
+                        onNavigateToMotorcycleCategories = {
+                            navController.navigate(Screen.MotorcycleCategories.route)
+                        },
+                        onNavigateToCarCategories = {
+                            navController.navigate(Screen.CarCategories.route)
+                        }
+                    )
+                }
+                composable(Screen.CarCategories.route) {
+                    CarCategoriesScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToPdf = { category ->
+                            navController.navigate("${Screen.RulesPdfViewer.route}/CAR/${category.name}")
+                        }
+                    )
+                }
+                composable(Screen.MotorcycleCategories.route) {
+                    MotorcycleCategoriesScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToPdf = { category ->
+                            navController.navigate("${Screen.MotorcycleRulesPdfViewer.route}/${category.name}")
+                        }
+                    )
+                }
+                composable("${Screen.RulesPdfViewer.route}/{vehicleType}/{category}") { backStackEntry ->
+                    val vehicleTypeString = backStackEntry.arguments?.getString("vehicleType") ?: "CAR"
+                    val categoryString = backStackEntry.arguments?.getString("category")
+                    
+                    val vehicleType = try {
+                        VehicleCategory.valueOf(vehicleTypeString)
+                    } catch (e: Exception) {
+                        VehicleCategory.CAR
+                    }
+                    
+                    val category = if (categoryString == "null" || categoryString == null) {
+                        null
+                    } else {
+                        try {
+                            CarLicenseCategory.valueOf(categoryString)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    
+                    RulesPdfViewerScreen(
+                        vehicleType = vehicleType,
+                        category = category,
+                        navController = navController
+                    )
+                }
+                composable("${Screen.MotorcycleRulesPdfViewer.route}/{category}") { backStackEntry ->
+                    val categoryString = backStackEntry.arguments?.getString("category") ?: "B_IIA"
+                    
+                    val category = try {
+                        MotorcycleLicenseCategory.valueOf(categoryString)
+                    } catch (e: Exception) {
+                        MotorcycleLicenseCategory.B_IIA
+                    }
+                    
+                    MotorcycleRulesPdfViewerScreen(
+                        category = category,
+                        navController = navController
+                    )
+                }
+                composable("${Screen.TrafficRuleQuiz.route}/{vehicleType}/{category}") { backStackEntry ->
+                    val vehicleTypeString = backStackEntry.arguments?.getString("vehicleType") ?: "CAR"
+                    val categoryString = backStackEntry.arguments?.getString("category")
+                    
+                    val vehicleType = try {
+                        VehicleCategory.valueOf(vehicleTypeString)
+                    } catch (e: Exception) {
+                        VehicleCategory.CAR
+                    }
+                    
+                    val category = if (categoryString == "null" || categoryString == null) {
+                        null
+                    } else {
+                        try {
+                            CarLicenseCategory.valueOf(categoryString)
+                        } catch (e: Exception) {
+                            null
+                        }
+                    }
+                    
+                    TrafficRuleQuizScreen(
+                        vehicleType = vehicleType,
+                        category = category,
+                        onNavigateBack = { navController.popBackStack() },
+                        onQuizCompleted = { score ->
+                            // Navegar de vuelta con el resultado
+                            navController.popBackStack()
+                        }
+                    )
                 }
                 composable(Screen.LicenseTypes.route) {
                     LicenseTypesScreen(
@@ -434,13 +555,70 @@ fun MainAppNavigation(
                 }
                 composable(Screen.Profile.route) {
                     ProfileScreen(
-                        currentUser = currentUser,
-                        onLogout = onLogout
+                        currentUser = userToUse,
+                        onLogout = onLogout,
+                        onNavigateToEditProfile = {
+                            navController.navigate(Screen.EditProfile.route)
+                        }
                     )
                 }
-                if (currentUser.role == com.example.appbrevete.domain.model.UserRole.ADMIN) {
+                composable(Screen.EditProfile.route) {
+                    EditProfileScreen(
+                        currentUser = userToUse,
+                        onNavigateBack = { navController.popBackStack() },
+                        onProfileUpdated = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+                if (userToUse.role == com.example.appbrevete.domain.model.UserRole.ADMIN) {
                     composable(Screen.Admin.route) {
-                        AdminScreen()
+                        AdminScreen(
+                            onNavigateToManageAppointments = {
+                                navController.navigate(Screen.AdminManageAppointments.route)
+                            },
+                            onNavigateToManageClasses = {
+                                navController.navigate(Screen.AdminManageClasses.route)
+                            },
+                            onNavigateToCreateUser = {
+                                navController.navigate(Screen.CreateAdminUser.route)
+                            }
+                        )
+                    }
+                    composable(Screen.AdminManageAppointments.route) {
+                        AdminManageAppointmentsScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToEvaluation = { appointmentId ->
+                                navController.navigate(Screen.MedicalEvaluation.createRoute(appointmentId))
+                            }
+                        )
+                    }
+                    composable(Screen.MedicalEvaluation.route) { backStackEntry ->
+                        val appointmentId = backStackEntry.arguments?.getString("appointmentId") ?: ""
+                        MedicalEvaluationScreen(
+                            appointmentId = appointmentId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.AdminManageClasses.route) {
+                        AdminManageClassesScreenNew(
+                            onNavigateBack = { navController.popBackStack() },
+                            onClassClick = { classId ->
+                                navController.navigate(Screen.DrivingClassEvaluation.createRoute(classId))
+                            }
+                        )
+                    }
+                    composable(Screen.DrivingClassEvaluation.route) { backStackEntry ->
+                        val classId = backStackEntry.arguments?.getString("classId") ?: ""
+                        DrivingClassEvaluationScreen(
+                            classId = classId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+                    composable(Screen.CreateAdminUser.route) {
+                        CreateAdminUserScreen(
+                            onNavigateBack = { navController.popBackStack() }
+                        )
                     }
                 }
             }
@@ -588,33 +766,43 @@ data class MenuItem(
 )
 
 fun getMenuItemsForRole(role: UserRole): List<MenuItem> {
-    val baseItems = listOf(
-        MenuItem(Screen.Home.route, "Inicio", Icons.Default.Home),
-        MenuItem(Screen.Appointments.route, "Citas", Icons.Default.Event),
-        MenuItem(Screen.Classes.route, "Clases", Icons.Default.DirectionsCar),
-        MenuItem(Screen.ExamSimulator.route, "Simulador", Icons.Default.Quiz),
-        MenuItem(Screen.LicenseTypes.route, "Licencias", Icons.Default.CreditCard),
-        MenuItem(Screen.Profile.route, "Perfil", Icons.Default.Person)
-    )
-    
     return when (role) {
-        UserRole.ADMIN -> baseItems + MenuItem(Screen.Admin.route, "Admin", Icons.Default.AdminPanelSettings)
-        UserRole.EXAMINER -> baseItems
-        UserRole.INSTRUCTOR -> baseItems
-        UserRole.MEDICAL_DOCTOR -> baseItems
-        UserRole.STUDENT -> baseItems
+        UserRole.ADMIN -> listOf(
+            MenuItem(Screen.Admin.route, "Inicio", Icons.Default.Home),
+            MenuItem(Screen.AdminManageAppointments.route, "Citas Médicas", Icons.Default.Event),
+            MenuItem(Screen.AdminManageClasses.route, "Clases de Manejo", Icons.Default.DirectionsCar),
+            MenuItem(Screen.Profile.route, "Perfil", Icons.Default.Person)
+        )
+        else -> {
+            val baseItems = listOf(
+                MenuItem(Screen.Home.route, "Inicio", Icons.Default.Home),
+                MenuItem(Screen.Appointments.route, "Citas Médicas", Icons.Default.Event),
+                MenuItem(Screen.TrafficRules.route, "Examen de Reglas", Icons.Default.Quiz),
+                MenuItem(Screen.Classes.route, "Clases de Manejo", Icons.Default.DirectionsCar),
+                MenuItem(Screen.LicenseTypes.route, "Licencias", Icons.Default.CreditCard),
+                MenuItem(Screen.Profile.route, "Perfil", Icons.Default.Person)
+            )
+            baseItems
+        }
     }
 }
 
 fun getScreenTitle(route: String?): String {
     return when (route) {
         Screen.Home.route -> "Inicio"
-        Screen.Appointments.route -> "Citas"
-        Screen.Classes.route -> "Clases"
+        Screen.Appointments.route -> "Citas Médicas"
+        Screen.Classes.route -> "Clases de Manejo"
         Screen.ExamSimulator.route -> "Simulador de Examen"
+        Screen.TrafficRules.route -> "Examen de Reglas"
+        Screen.CarCategories.route -> "Categorías de Automóvil"
+        Screen.RulesPdfViewer.route -> "Manual de Reglas"
+        Screen.TrafficRuleQuiz.route -> "Examen de Reglas"
         Screen.LicenseTypes.route -> "Tipos de Licencia"
         Screen.Profile.route -> "Perfil"
-        Screen.Admin.route -> "Administración"
+        Screen.EditProfile.route -> "Editar Perfil"
+        Screen.Admin.route -> "Inicio"
+        Screen.AdminManageAppointments.route -> "Gestionar Citas Médicas"
+        Screen.AdminManageClasses.route -> "Gestionar Clases de Manejo"
         Screen.Login.route -> "Iniciar Sesión"
         Screen.Register.route -> "Registro"
         else -> "App Brevete"
@@ -642,10 +830,26 @@ sealed class Screen(val route: String) {
     object ClassBooking : Screen("class_booking")
     object EditDrivingClass : Screen("edit_driving_class")
     object ExamSimulator : Screen("exam_simulator")
+    object TrafficRules : Screen("traffic_rules")
+    object CarCategories : Screen("car_categories")
+    object MotorcycleCategories : Screen("motorcycle_categories")
+    object RulesPdfViewer : Screen("rules_pdf_viewer")
+    object MotorcycleRulesPdfViewer : Screen("motorcycle_rules_pdf_viewer")
+    object TrafficRuleQuiz : Screen("traffic_rule_quiz")
     object LicenseTypes : Screen("license_types")
     object LicenseDetail : Screen("license_detail")
     object Profile : Screen("profile")
+    object EditProfile : Screen("edit_profile")
     object Admin : Screen("admin")
+    object AdminManageAppointments : Screen("admin_manage_appointments")
+    object AdminManageClasses : Screen("admin_manage_classes")
+    object MedicalEvaluation : Screen("medical_evaluation/{appointmentId}") {
+        fun createRoute(appointmentId: String) = "medical_evaluation/$appointmentId"
+    }
+    object DrivingClassEvaluation : Screen("driving_class_evaluation/{classId}") {
+        fun createRoute(classId: String) = "driving_class_evaluation/$classId"
+    }
+    object CreateAdminUser : Screen("create_admin_user")
     object Login : Screen("login")
     object Register : Screen("register")
 }

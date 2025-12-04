@@ -7,6 +7,7 @@ import com.example.appbrevete.domain.model.DrivingClassStatus
 import com.example.appbrevete.domain.model.DrivingPackageType
 import com.example.appbrevete.domain.model.VehicleType
 import com.example.appbrevete.domain.repository.DrivingClassRepository
+import com.example.appbrevete.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ data class DrivingClassUiState(
 
 @HiltViewModel
 class DrivingClassViewModel @Inject constructor(
-    private val drivingClassRepository: DrivingClassRepository
+    private val drivingClassRepository: DrivingClassRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(DrivingClassUiState())
@@ -75,6 +77,11 @@ class DrivingClassViewModel @Inject constructor(
             try {
                 _uiState.value = _uiState.value.copy(isCreatingClass = true, errorMessage = null)
                 
+                // Obtener datos del usuario
+                val user = userRepository.getUserById(userId)
+                val userName = user?.let { "${it.firstName} ${it.lastName}" }
+                val userDni = user?.dni
+                
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val parsedDate = dateFormat.parse(date)
                 val scheduledDate = parsedDate?.time ?: System.currentTimeMillis()
@@ -104,7 +111,9 @@ class DrivingClassViewModel @Inject constructor(
                     status = DrivingClassStatus.SCHEDULED,
                     location = "Centro de Clases de Manejo - Lima",
                     vehicleType = VehicleType.CAR_MANUAL,
-                    notes = null
+                    notes = null,
+                    userName = userName,
+                    userDni = userDni
                 )
                 
                 drivingClassRepository.insertClass(newClass)

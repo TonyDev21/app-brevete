@@ -10,6 +10,7 @@ import com.example.appbrevete.data.local.dao.UserDao
 import com.example.appbrevete.data.local.dao.LicenseTypeDao
 import com.example.appbrevete.data.local.dao.AppointmentDao
 import com.example.appbrevete.data.local.dao.DrivingClassDao
+import com.example.appbrevete.data.local.dao.MedicalEvaluationDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,5 +54,10 @@ object AppModule {
     @Provides
     fun provideDrivingClassDao(database: AppBreveteDatabase): DrivingClassDao {
         return database.drivingClassDao()
+    }
+    
+    @Provides
+    fun provideMedicalEvaluationDao(database: AppBreveteDatabase): MedicalEvaluationDao {
+        return database.medicalEvaluationDao()
     }
 }

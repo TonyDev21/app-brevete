@@ -34,6 +34,8 @@ data class AppointmentEntity(
     @PrimaryKey
     val id: String,
     val userId: String,
+    val userName: String? = null,
+    val userDni: String? = null,
     val type: AppointmentType,
     val licenseTypeId: String? = null,
     val scheduledDate: Long,
@@ -43,6 +45,7 @@ data class AppointmentEntity(
     val notes: String? = null,
     val examinerId: String? = null,
     val instructorId: String? = null,
+    val medicalEvaluationId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

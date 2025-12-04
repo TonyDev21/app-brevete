@@ -6,6 +6,8 @@ package com.example.appbrevete.domain.model
 data class DrivingClass(
     val id: String,
     val studentId: String,
+    val userName: String? = null,
+    val userDni: String? = null,
     val instructorId: String,
     val instructorName: String,
     val packageType: DrivingPackageType,

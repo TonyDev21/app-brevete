@@ -21,6 +21,12 @@ class AppointmentRepositoryImpl @Inject constructor(
         return appointmentDao.getAppointmentById(id)?.toDomainModel()
     }
     
+    override fun getAllAppointments(): Flow<List<Appointment>> {
+        return appointmentDao.getAllAppointments().map { entities ->
+            entities.map { it.toDomainModel() }
+        }
+    }
+    
     override fun getAppointmentsByUser(userId: String): Flow<List<Appointment>> {
         return appointmentDao.getAppointmentsByUser(userId).map { entities ->
             entities.map { it.toDomainModel() }
@@ -83,5 +89,9 @@ class AppointmentRepositoryImpl @Inject constructor(
     
     override suspend fun getAppointmentCountByStatus(status: AppointmentStatus): Int {
         return appointmentDao.getAppointmentCountByStatus(status)
+    }
+    
+    override suspend fun deleteAllAppointments() {
+        appointmentDao.deleteAllAppointments()
     }
 }

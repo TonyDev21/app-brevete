@@ -3,6 +3,8 @@ package com.example.appbrevete.domain.model
 data class Appointment(
     val id: String,
     val userId: String,
+    val userName: String? = null,
+    val userDni: String? = null,
     val type: AppointmentType,
     val licenseTypeId: String? = null,
     val scheduledDate: Long,
@@ -12,6 +14,7 @@ data class Appointment(
     val notes: String? = null,
     val examinerId: String? = null,
     val instructorId: String? = null,
+    val medicalEvaluationId: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

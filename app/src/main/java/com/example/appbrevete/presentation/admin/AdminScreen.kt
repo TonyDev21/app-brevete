@@ -26,6 +26,9 @@ import androidx.annotation.RequiresApi
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminScreen(
+    onNavigateToManageAppointments: () -> Unit = {},
+    onNavigateToManageClasses: () -> Unit = {},
+    onNavigateToCreateUser: () -> Unit = {},
     viewModel: AdminViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -61,20 +64,20 @@ fun AdminScreen(
                     AdminStatsCard(
                         totalUsers = uiState.stats.totalUsers,
                         totalAppointments = uiState.stats.totalAppointments,
-                        totalLicenseTypes = 5 // placeholder
+                        totalClasses = uiState.stats.totalClasses
                     )
                 }
                 
                 item {
-                    QuickActionsCard()
+                    QuickActionsCard(
+                        onNavigateToManageAppointments = onNavigateToManageAppointments,
+                        onNavigateToManageClasses = onNavigateToManageClasses,
+                        onNavigateToCreateUser = onNavigateToCreateUser
+                    )
                 }
                 
                 item {
                     RecentUsersCard(users = uiState.allUsers)
-                }
-                
-                item {
-                    SystemHealthCard()
                 }
             }
         }
@@ -102,7 +105,7 @@ fun AdminScreen(
 fun AdminStatsCard(
     totalUsers: Int,
     totalAppointments: Int,
-    totalLicenseTypes: Int
+    totalClasses: Int
 ) {
     Card(
         modifier = Modifier.fillMaxWidth()
@@ -127,14 +130,14 @@ fun AdminStatsCard(
                     icon = Icons.Filled.People
                 )
                 StatItem(
-                    title = "Citas",
+                    title = "Citas Médicas",
                     value = totalAppointments.toString(),
                     icon = Icons.Filled.Event
                 )
                 StatItem(
-                    title = "Licencias",
-                    value = totalLicenseTypes.toString(),
-                    icon = Icons.Filled.CardMembership
+                    title = "Clases de Manejo",
+                    value = totalClasses.toString(),
+                    icon = Icons.Filled.DirectionsCar
                 )
             }
         }
@@ -142,7 +145,11 @@ fun AdminStatsCard(
 }
 
 @Composable
-fun QuickActionsCard() {
+fun QuickActionsCard(
+    onNavigateToManageAppointments: () -> Unit = {},
+    onNavigateToManageClasses: () -> Unit = {},
+    onNavigateToCreateUser: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -156,10 +163,11 @@ fun QuickActionsCard() {
             )
             Spacer(modifier = Modifier.height(16.dp))
             
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                items(getAdminQuickActions()) { action ->
+                getAdminQuickActions(onNavigateToManageAppointments, onNavigateToManageClasses, onNavigateToCreateUser).forEach { action ->
                     QuickActionItem(
                         icon = action.icon,
                         title = action.title,
@@ -207,53 +215,14 @@ fun RecentUsersCard(users: List<User>) {
 }
 
 @Composable
-fun SystemHealthCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Estado del Sistema",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Base de Datos",
-                    fontSize = 14.sp
-                )
-                Surface(
-                    color = MaterialTheme.colorScheme.tertiaryContainer,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        text = "Conectada",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun StatItem(
     title: String,
     value: String,
     icon: ImageVector
 ) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.width(100.dp)
     ) {
         Icon(
             imageVector = icon,
@@ -267,10 +236,13 @@ fun StatItem(
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
             text = title,
             fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            maxLines = 2
         )
     }
 }
@@ -353,27 +325,26 @@ data class AdminQuickAction(
     val onClick: () -> Unit
 )
 
-private fun getAdminQuickActions(): List<AdminQuickAction> {
+private fun getAdminQuickActions(
+    onNavigateToManageAppointments: () -> Unit = {},
+    onNavigateToManageClasses: () -> Unit = {},
+    onNavigateToCreateUser: () -> Unit = {}
+): List<AdminQuickAction> {
     return listOf(
         AdminQuickAction(
             icon = Icons.Filled.PersonAdd,
             title = "Nuevo Usuario",
-            onClick = { /* Navigate to create user */ }
+            onClick = onNavigateToCreateUser
         ),
         AdminQuickAction(
             icon = Icons.Filled.Event,
             title = "Gestionar Citas",
-            onClick = { /* Navigate to manage appointments */ }
+            onClick = onNavigateToManageAppointments
         ),
         AdminQuickAction(
-            icon = Icons.Filled.Assignment,
-            title = "Reportes",
-            onClick = { /* Navigate to reports */ }
-        ),
-        AdminQuickAction(
-            icon = Icons.Filled.Settings,
-            title = "Configuración",
-            onClick = { /* Navigate to settings */ }
+            icon = Icons.Filled.DirectionsCar,
+            title = "Gestionar Clases",
+            onClick = onNavigateToManageClasses
         )
     )
 }

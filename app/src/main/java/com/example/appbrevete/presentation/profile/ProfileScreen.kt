@@ -19,6 +19,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.appbrevete.domain.model.User
 import com.example.appbrevete.domain.model.UserRole
 import com.example.appbrevete.presentation.viewmodel.ProfileViewModel
+import com.example.appbrevete.presentation.viewmodel.AuthViewModel
 import android.os.Build
 import androidx.annotation.RequiresApi
 
@@ -28,12 +29,26 @@ import androidx.annotation.RequiresApi
 fun ProfileScreen(
     currentUser: User,
     onLogout: () -> Unit = {},
+    onNavigateToEditProfile: () -> Unit = {},
     viewModel: ProfileViewModel = hiltViewModel()
 ) {
+    val authViewModel: AuthViewModel = hiltViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val currentUserFromAuth by authViewModel.currentUser.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
     
-    LaunchedEffect(currentUser.id) {
+    // Use user from ProfileViewModel if available, otherwise from AuthViewModel
+    val userToDisplay = uiState.user ?: currentUserFromAuth ?: currentUser
+    
+    // Refresh ProfileViewModel when returning from edit or when AuthViewModel user changes
+    LaunchedEffect(currentUserFromAuth) {
+        currentUserFromAuth?.let { user ->
+            viewModel.loadUserProfile(user.id)
+        }
+    }
+    
+    // Initial load
+    LaunchedEffect(Unit) {
         viewModel.loadUserProfile(currentUser.id)
     }
 
@@ -44,9 +59,12 @@ fun ProfileScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ProfileHeaderCard(user = currentUser)
+        ProfileHeaderCard(user = userToDisplay)
         
-        PersonalInfoCard(user = currentUser)
+        PersonalInfoCard(
+            user = userToDisplay,
+            onNavigateToEditProfile = onNavigateToEditProfile
+        )
         
         if (uiState.isLoading) {
             Box(
@@ -61,10 +79,8 @@ fun ProfileScreen(
                 completedAppointments = uiState.completedAppointments,
                 totalClasses = uiState.totalClasses,
                 completedClasses = uiState.completedClasses,
-                memberSince = formatMemberSince(currentUser.createdAt)
+                memberSince = formatMemberSince(userToDisplay.createdAt)
             )
-            
-            QuickActionsCard()
             
             AccountActionsCard(onLogout = onLogout)
         }
@@ -95,12 +111,14 @@ fun ProfileHeaderCard(user: User) {
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Avatar placeholder
             Surface(
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(100.dp),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = MaterialTheme.colorScheme.primary
             ) {
@@ -110,58 +128,67 @@ fun ProfileHeaderCard(user: User) {
                     Icon(
                         imageVector = Icons.Filled.Person,
                         contentDescription = "Avatar",
-                        modifier = Modifier.size(40.dp),
+                        modifier = Modifier.size(50.dp),
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             
             Text(
                 text = "${user.firstName} ${user.lastName}",
-                fontSize = 20.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            
-            Text(
-                text = user.email,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                textAlign = TextAlign.Center
             )
             
             Spacer(modifier = Modifier.height(8.dp))
             
-            Surface(
-                color = MaterialTheme.colorScheme.primary,
-                shape = MaterialTheme.shapes.small
-            ) {
-                Text(
-                    text = getRoleDisplayName(user.role),
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Medium
-                )
-            }
+            Text(
+                text = user.email,
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
 @Composable
-fun PersonalInfoCard(user: User) {
+fun PersonalInfoCard(
+    user: User,
+    onNavigateToEditProfile: () -> Unit = {}
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = "Información Personal",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Información Personal",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                
+                IconButton(
+                    onClick = onNavigateToEditProfile
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Edit,
+                        contentDescription = "Editar perfil",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
             Spacer(modifier = Modifier.height(16.dp))
             
             InfoRow(
@@ -245,44 +272,7 @@ fun AccountStatsCard(
     }
 }
 
-@Composable
-fun QuickActionsCard() {
-    Card(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Acciones Rápidas",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                ActionButton(
-                    icon = Icons.Filled.Edit,
-                    text = "Editar Perfil",
-                    onClick = { /* Navigate to edit profile */ }
-                )
-                ActionButton(
-                    icon = Icons.Filled.Security,
-                    text = "Cambiar Contraseña",
-                    onClick = { /* Navigate to change password */ }
-                )
-                ActionButton(
-                    icon = Icons.Filled.History,
-                    text = "Historial",
-                    onClick = { /* Navigate to history */ }
-                )
-            }
-        }
-    }
-}
+
 
 @Composable
 fun AppSettingsCard() {

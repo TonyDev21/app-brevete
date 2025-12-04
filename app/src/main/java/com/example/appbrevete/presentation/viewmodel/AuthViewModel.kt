@@ -10,8 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.UUID
+import java.util.*
 import javax.inject.Inject
+import android.util.Log
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
@@ -107,6 +108,26 @@ class AuthViewModel @Inject constructor(
     fun logout() {
         _currentUser.value = null
         _authState.value = AuthState.Unauthenticated
+    }
+    
+    fun updateCurrentUser(user: User) {
+        Log.d("AuthViewModel", "Updating current user: firstName=${user.firstName}, lastName=${user.lastName}")
+        _currentUser.value = user
+    }
+    
+    fun refreshCurrentUser() {
+        viewModelScope.launch {
+            _currentUser.value?.let { user ->
+                try {
+                    val refreshedUser = userRepository.getUserById(user.id)
+                    if (refreshedUser != null) {
+                        _currentUser.value = refreshedUser
+                    }
+                } catch (e: Exception) {
+                    // Si hay error, mantener el usuario actual
+                }
+            }
+        }
     }
     
     fun clearError() {

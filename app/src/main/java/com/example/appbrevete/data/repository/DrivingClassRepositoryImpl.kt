@@ -120,6 +120,8 @@ private fun DrivingClassEntity.toDomainModel(): DrivingClass {
             else -> VehicleType.CAR_MANUAL
         },
         notes = notes,
+        userName = userName,
+        userDni = userDni,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -160,6 +162,8 @@ private fun DrivingClass.toEntity(): DrivingClassEntity {
             VehicleType.BUS -> "bus"
         },
         notes = notes,
+        userName = userName,
+        userDni = userDni,
         price = when (packageType) {
             DrivingPackageType.BASIC_2H -> 65.0
             DrivingPackageType.STANDARD_4H -> 125.0

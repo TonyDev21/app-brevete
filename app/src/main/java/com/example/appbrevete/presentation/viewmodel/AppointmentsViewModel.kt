@@ -6,6 +6,7 @@ import com.example.appbrevete.domain.model.Appointment
 import com.example.appbrevete.domain.model.AppointmentStatus
 import com.example.appbrevete.domain.model.AppointmentType
 import com.example.appbrevete.domain.repository.AppointmentRepository
+import com.example.appbrevete.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -26,7 +27,8 @@ data class AppointmentsUiState(
 
 @HiltViewModel
 class AppointmentsViewModel @Inject constructor(
-    private val appointmentRepository: AppointmentRepository
+    private val appointmentRepository: AppointmentRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(AppointmentsUiState())
@@ -95,9 +97,16 @@ class AppointmentsViewModel @Inject constructor(
                 println("AppointmentsViewModel: Starting appointment creation")
                 _uiState.value = _uiState.value.copy(isCreatingAppointment = true, errorMessage = null)
                 
+                // Obtener datos del usuario
+                val user = userRepository.getUserById(userId)
+                val userName = if (user != null) "${user.firstName} ${user.lastName}" else "Usuario"
+                val userDni = user?.dni ?: ""
+                
                 val newAppointment = Appointment(
                     id = UUID.randomUUID().toString(),
                     userId = userId,
+                    userName = userName,
+                    userDni = userDni,
                     type = type,
                     licenseTypeId = licenseTypeId,
                     scheduledDate = scheduledDate,

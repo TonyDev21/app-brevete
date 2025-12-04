@@ -7,10 +7,12 @@ import com.example.appbrevete.domain.model.UserRole
 import com.example.appbrevete.domain.model.AppointmentStatus
 import com.example.appbrevete.domain.repository.UserRepository
 import com.example.appbrevete.domain.repository.AppointmentRepository
+import com.example.appbrevete.domain.repository.DrivingClassRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,7 +25,8 @@ data class AdminStats(
     val totalAppointments: Int = 0,
     val scheduledAppointments: Int = 0,
     val completedAppointments: Int = 0,
-    val cancelledAppointments: Int = 0
+    val cancelledAppointments: Int = 0,
+    val totalClasses: Int = 0
 )
 
 data class AdminUiState(
@@ -36,7 +39,8 @@ data class AdminUiState(
 @HiltViewModel
 class AdminViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val appointmentRepository: AppointmentRepository
+    private val appointmentRepository: AppointmentRepository,
+    private val drivingClassRepository: DrivingClassRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(AdminUiState())
@@ -52,11 +56,14 @@ class AdminViewModel @Inject constructor(
                 val instructorCount = userRepository.getUserCountByRole(UserRole.INSTRUCTOR)
                 val examinerCount = userRepository.getUserCountByRole(UserRole.EXAMINER)
                 val doctorCount = userRepository.getUserCountByRole(UserRole.MEDICAL_DOCTOR)
-                
                 // Cargar estadísticas de citas
                 val scheduledCount = appointmentRepository.getAppointmentCountByStatus(AppointmentStatus.SCHEDULED)
                 val completedCount = appointmentRepository.getAppointmentCountByStatus(AppointmentStatus.COMPLETED)
                 val cancelledCount = appointmentRepository.getAppointmentCountByStatus(AppointmentStatus.CANCELLED)
+                
+                // Cargar estadísticas de clases
+                val allClasses = drivingClassRepository.getAllClasses().first()
+                val totalClasses = allClasses.size
                 
                 val stats = AdminStats(
                     totalUsers = studentCount + instructorCount + examinerCount + doctorCount,
@@ -67,7 +74,8 @@ class AdminViewModel @Inject constructor(
                     totalAppointments = scheduledCount + completedCount + cancelledCount,
                     scheduledAppointments = scheduledCount,
                     completedAppointments = completedCount,
-                    cancelledAppointments = cancelledCount
+                    cancelledAppointments = cancelledCount,
+                    totalClasses = totalClasses
                 )
                 
                 _uiState.value = _uiState.value.copy(

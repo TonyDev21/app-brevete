@@ -12,6 +12,9 @@ interface AppointmentDao {
     @Query("SELECT * FROM appointments WHERE id = :id")
     suspend fun getAppointmentById(id: String): AppointmentEntity?
     
+    @Query("SELECT * FROM appointments ORDER BY scheduledDate DESC")
+    fun getAllAppointments(): Flow<List<AppointmentEntity>>
+    
     @Query("SELECT * FROM appointments WHERE userId = :userId ORDER BY scheduledDate ASC")
     fun getAppointmentsByUser(userId: String): Flow<List<AppointmentEntity>>
     

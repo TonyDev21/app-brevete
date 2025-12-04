@@ -82,6 +82,8 @@ fun AppointmentEntity.toDomainModel(): Appointment {
     return Appointment(
         id = id,
         userId = userId,
+        userName = userName,
+        userDni = userDni,
         type = type,
         licenseTypeId = licenseTypeId,
         scheduledDate = scheduledDate,
@@ -91,6 +93,7 @@ fun AppointmentEntity.toDomainModel(): Appointment {
         notes = notes,
         examinerId = examinerId,
         instructorId = instructorId,
+        medicalEvaluationId = medicalEvaluationId,
         createdAt = createdAt,
         updatedAt = updatedAt
     )
@@ -100,6 +103,8 @@ fun Appointment.toEntity(): AppointmentEntity {
     return AppointmentEntity(
         id = id,
         userId = userId,
+        userName = userName,
+        userDni = userDni,
         type = type,
         licenseTypeId = licenseTypeId,
         scheduledDate = scheduledDate,
@@ -109,6 +114,7 @@ fun Appointment.toEntity(): AppointmentEntity {
         notes = notes,
         examinerId = examinerId,
         instructorId = instructorId,
+        medicalEvaluationId = medicalEvaluationId,
         createdAt = createdAt,
         updatedAt = updatedAt
     )

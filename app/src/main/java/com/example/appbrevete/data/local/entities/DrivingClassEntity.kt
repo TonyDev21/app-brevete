@@ -8,6 +8,8 @@ data class DrivingClassEntity(
     @PrimaryKey
     val id: String,
     val studentId: String,
+    val userName: String? = null,
+    val userDni: String? = null,
     val instructorId: String,
     val instructorName: String,
     val packageType: String, // "2h", "4h", "custom"
